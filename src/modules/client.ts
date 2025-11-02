@@ -1,5 +1,5 @@
 import { IHttpClient, NomadHttpClientFactory } from '../core/http';
-import { NomadConfigManager } from '../config/NomadConfig';
+import { NomadConfigManager, AuthMethod } from '../config/NomadConfig';
 import { NomadJobModule, INomadJobModule } from './job';
 import { NomadTaskModule, INomadTaskModule } from './task';
 import { NomadNamespaceModule, INomadNamespaceModule } from './namespaces';
@@ -52,6 +52,16 @@ export interface INomadClientConfig {
     namespace?: string;
     region?: string;
     isTLSInsecure?: boolean;
+    /**
+     * Authentication method to use
+     * @default 'token' (X-Nomad-Token header)
+     */
+    authMethod?: 'token' | 'bearer' | 'mtls';
+    /**
+     * Use Authorization Bearer header instead of X-Nomad-Token
+     * @deprecated Use authMethod instead
+     */
+    useAuthorizationHeader?: boolean;
     tls?: {
         caCertPath?: string;
         clientCertPath?: string;
@@ -78,6 +88,23 @@ export class NomadClient implements INomadClient {
     private httpClient: IHttpClient;
     private configManager: NomadConfigManager;
 
+    /**
+     * Converts string auth method to AuthMethod enum
+     */
+    private convertAuthMethod(authMethod?: string): AuthMethod | undefined {
+        if (!authMethod) return undefined;
+        
+        switch (authMethod) {
+            case 'bearer':
+                return AuthMethod.BEARER;
+            case 'mtls':
+                return AuthMethod.MTLS;
+            case 'token':
+            default:
+                return AuthMethod.TOKEN;
+        }
+    }
+
     // Módulos da API Nomad
     public readonly jobs: NomadJobModule;
     public readonly tasks: INomadTaskModule;
@@ -91,8 +118,11 @@ export class NomadClient implements INomadClient {
         this.configManager = NomadConfigManager.initialize({
             host: config?.baseUrl || process.env.NOMAD_ADDR || 'http://localhost:4646',
             secretID: config?.token || process.env.NOMAD_TOKEN,
-            namespace: config?.namespace || process.env.NOMAD_NAMESPACE || 'default',
+            namespace: config?.namespace || process.env.NOMAD_NAMESPACE,
+            region: config?.region || process.env.NOMAD_REGION,
             isTLSInsecure: config?.isTLSInsecure || false,
+            authMethod: this.convertAuthMethod(config?.authMethod),
+            useAuthorizationHeader: config?.useAuthorizationHeader,
             tls: config?.tls
         });
 
@@ -198,7 +228,19 @@ export class NomadClient implements INomadClient {
      * Atualiza configuração
      */
     updateConfig(newConfig: Partial<INomadClientConfig>) {
-        this.configManager.updateConfig(newConfig);
+        // Convert client config to internal config format
+        const internalConfig: Partial<import('../config/NomadConfig').INomadConfig> = {
+            host: newConfig.baseUrl,
+            secretID: newConfig.token,
+            namespace: newConfig.namespace,
+            region: newConfig.region,
+            isTLSInsecure: newConfig.isTLSInsecure,
+            authMethod: this.convertAuthMethod(newConfig.authMethod),
+            useAuthorizationHeader: newConfig.useAuthorizationHeader,
+            tls: newConfig.tls
+        };
+
+        this.configManager.updateConfig(internalConfig);
         this.httpClient = NomadHttpClientFactory.createFromNomadConfig(this.configManager);
     }
 
