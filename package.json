@@ -1,6 +1,6 @@
 {
   "name": "nomad-client",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "TypeScript client library for HashiCorp Nomad API - Complete SDK with type-safe interfaces for jobs, nodes, allocations, and cluster management",
   "main": "./src/index.ts",
   "scripts": {
