@@ -54,10 +54,10 @@ pnpm add nomad-client
 ### Basic Configuration
 
 ```typescript
-import { NomadProvider } from 'nomad-client';
+import { NomadClient } from 'nomad-client';
 
 // Create provider instance
-const nomad = new NomadProvider({
+const nomad = new NomadClient({
     baseUrl: 'http://localhost:4646',
     token: process.env.NOMAD_TOKEN,
     namespace: 'default'
@@ -74,7 +74,7 @@ The client supports multiple authentication methods according to HashiCorp Nomad
 
 #### Token Authentication (Recommended)
 ```typescript
-const nomad = new NomadProvider({
+const nomad = new NomadClient({
     baseUrl: 'https://nomad.example.com:4646',
     token: '550e8400-e29b-41d4-a716-446655440000',
     authMethod: 'token' // Uses X-Nomad-Token header (default)
@@ -83,7 +83,7 @@ const nomad = new NomadProvider({
 
 #### Bearer Authentication
 ```typescript
-const nomad = new NomadProvider({
+const nomad = new NomadClient({
     baseUrl: 'https://nomad.example.com:4646',
     token: '550e8400-e29b-41d4-a716-446655440000',
     authMethod: 'bearer' // Uses Authorization: Bearer header
@@ -92,7 +92,7 @@ const nomad = new NomadProvider({
 
 #### Mutual TLS (mTLS)
 ```typescript
-const nomad = new NomadProvider({
+const nomad = new NomadClient({
     baseUrl: 'https://nomad.example.com:4646',
     authMethod: 'mtls',
     tls: {
@@ -113,7 +113,7 @@ export NOMAD_REGION="us-west-1"
 
 ```typescript
 // Auto-configured from environment variables
-const nomad = new NomadProvider();
+const nomad = new NomadClient();
 ```
 
 ### Job Management
@@ -507,7 +507,7 @@ async function setupEnvironmentPools() {
 
 ```typescript
 // Production TLS setup with certificates
-const nomad = new NomadProvider({
+const nomad = new NomadClient({
     baseUrl: 'https://nomad.example.com:4646',
     token: 'secure-token',
     tls: {
@@ -518,7 +518,7 @@ const nomad = new NomadProvider({
 });
 
 // mTLS authentication (no token required)
-const nomadMTLS = new NomadProvider({
+const nomadMTLS = new NomadClient({
     baseUrl: 'https://nomad.example.com:4646',
     authMethod: 'mtls',
     tls: {
@@ -533,7 +533,7 @@ const nomadMTLS = new NomadProvider({
 
 ```typescript
 // Insecure configuration for development
-const nomadDev = new NomadProvider({
+const nomadDev = new NomadClient({
     baseUrl: 'https://nomad-dev:4646',
     token: 'dev-token',
     isTLSInsecure: true,  // Skip certificate validation
@@ -544,7 +544,7 @@ const nomadDev = new NomadProvider({
 ### Timeouts and HTTP Configuration
 
 ```typescript
-const nomad = new NomadProvider({
+const nomad = new NomadClient({
     baseUrl: 'http://nomad:4646',
     token: 'my-token',
     timeout: 60000,       // 60 seconds timeout
@@ -656,7 +656,7 @@ async function setupMonitoring() {
 
 ```typescript
 async function deployWithMonitoring() {
-    const nomad = new NomadProvider({
+    const nomad = new NomadClient({
         baseUrl: process.env.NOMAD_ADDR,
         token: process.env.NOMAD_TOKEN,
         namespace: process.env.NOMAD_NAMESPACE
@@ -720,7 +720,7 @@ interface ScalingConfig {
 }
 
 async function autoScale(jobId: string, taskGroup: string, config: ScalingConfig) {
-    const nomad = new NomadProvider();
+    const nomad = new NomadClient();
     
     // Get current allocations and metrics
     const allocations = await nomad.jobs.allocations(jobId);
@@ -814,7 +814,7 @@ interface ClusterHealthReport {
 }
 
 async function comprehensiveClusterCheck(): Promise<ClusterHealthReport> {
-    const nomad = new NomadProvider();
+    const nomad = new NomadClient();
     
     // 1. Get cluster overview
     const clusterStats = await nomad.nodes.getClusterStats();
@@ -942,7 +942,7 @@ interface PoolAnalytics {
 }
 
 async function advancedPoolAnalytics(): Promise<PoolAnalytics[]> {
-    const nomad = new NomadProvider();
+    const nomad = new NomadClient();
     const results: PoolAnalytics[] = [];
     
     // Get comprehensive pool overview
@@ -1142,7 +1142,7 @@ src/
 ### Unit Testing Setup
 
 ```typescript
-import { NomadProvider } from 'nomad-client';
+import { NomadClient } from 'nomad-client';
 import { jest } from '@jest/globals';
 
 // Test configuration
@@ -1152,7 +1152,7 @@ const testConfig = {
     namespace: 'test'
 };
 
-const testNomad = new NomadProvider(testConfig);
+const testNomad = new NomadClient(testConfig);
 
 // Mock HTTP client for unit tests
 const mockHttpClient = {
@@ -1164,11 +1164,11 @@ const mockHttpClient = {
 };
 
 // Example unit test
-describe('NomadProvider', () => {
-    let nomad: NomadProvider;
+describe('NomadClient', () => {
+    let nomad: NomadClient;
     
     beforeEach(() => {
-        nomad = new NomadProvider(testConfig);
+        nomad = new NomadClient(testConfig);
         // Replace internal httpClient with mock
         (nomad as any).httpClient = mockHttpClient;
     });
@@ -1189,14 +1189,14 @@ describe('NomadProvider', () => {
 ### Integration Testing
 
 ```typescript
-import { NomadProvider } from 'nomad-client';
+import { NomadClient } from 'nomad-client';
 
 describe('Nomad Integration Tests', () => {
-    let nomad: NomadProvider;
+    let nomad: NomadClient;
     
     beforeAll(() => {
         // Use actual Nomad instance (requires running Nomad)
-        nomad = new NomadProvider({
+        nomad = new NomadClient({
             baseUrl: process.env.NOMAD_ADDR || 'http://localhost:4646',
             token: process.env.NOMAD_TOKEN
         });
